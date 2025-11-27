@@ -30,4 +30,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec-rails", "~> 8.0"
   spec.add_development_dependency "standard", "~> 1.52"
   spec.add_development_dependency "rails", ">= 8.0"
+  spec.add_development_dependency "rbs-inline", ">= 0.12"
+  spec.add_development_dependency "steep", ">= 1.10"
 end
