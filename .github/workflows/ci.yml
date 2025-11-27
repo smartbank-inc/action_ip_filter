@@ -41,7 +41,6 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version:
-          - "3.3"
           - "3.4"
           - "head"
     steps:
