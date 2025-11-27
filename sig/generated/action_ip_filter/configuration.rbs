@@ -1,0 +1,35 @@
+# Generated from lib/action_ip_filter/configuration.rb with RBS::Inline
+
+module ActionIpFilter
+  class Configuration
+    @ip_resolver: ^(ActionDispatch::Request) -> String?
+
+    @on_denied: ^() -> void
+
+    @logger: Logger?
+
+    @log_denials: bool
+
+    attr_accessor ip_resolver: ^(ActionDispatch::Request) -> String?
+
+    attr_accessor on_denied: ^() -> void
+
+    attr_accessor logger: Logger?
+
+    attr_accessor log_denials: bool
+
+    # @rbs return: void
+    def initialize: () -> void
+  end
+
+  @configuration: Configuration?
+
+  # @rbs return: Configuration
+  def self.configuration: () -> Configuration
+
+  # @rbs () { (Configuration) -> void } -> void
+  def self.configure: () { (Configuration) -> void } -> void
+
+  # @rbs return: void
+  def self.reset_configuration!: () -> void
+end

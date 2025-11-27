@@ -1,0 +1,16 @@
+# External type stubs for Rails
+
+module Rails
+  def self.logger: () -> Logger?
+
+  class Railtie
+    def self.initializer: (String, ?Hash[Symbol, untyped]) { () -> void } -> void
+  end
+end
+
+module ActionDispatch
+  class Request
+    def remote_ip: () -> String?
+    def headers: () -> Hash[String, String?]
+  end
+end

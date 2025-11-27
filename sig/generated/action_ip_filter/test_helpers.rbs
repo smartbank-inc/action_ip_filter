@@ -1,0 +1,17 @@
+# Generated from lib/action_ip_filter/test_helpers.rb with RBS::Inline
+
+module ActionIpFilter
+  module TestHelpers
+    # @rbs [T] () { () -> T } -> T
+    def without_ip_filter: [T] () { () -> T } -> T
+
+    # @rbs [T] () { () -> T } -> T
+    def with_ip_filter: [T] () { () -> T } -> T
+
+    # @rbs return: void
+    def enable_ip_filter_test_mode!: () -> void
+
+    # @rbs return: void
+    def disable_ip_filter_test_mode!: () -> void
+  end
+end

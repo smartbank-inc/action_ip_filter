@@ -1,0 +1,6 @@
+# Generated from lib/action_ip_filter/railtie.rb with RBS::Inline
+
+module ActionIpFilter
+  class Railtie < Rails::Railtie
+  end
+end

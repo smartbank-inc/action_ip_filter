@@ -1,0 +1,12 @@
+# External type stubs for ActiveSupport
+
+module ActiveSupport
+  module Concern
+    def included: (?Module base) ?{ () -> void } -> void
+    def class_methods: () ?{ () -> void } -> void
+  end
+end
+
+class Module
+  def class_attribute: (*Symbol, ?default: untyped, **untyped) -> void
+end

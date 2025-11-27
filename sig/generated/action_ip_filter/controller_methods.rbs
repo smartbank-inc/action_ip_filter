@@ -1,0 +1,54 @@
+# Generated from lib/action_ip_filter/controller_methods.rb with RBS::Inline
+
+module ActionIpFilter
+  module ControllerMethods
+    extend ActiveSupport::Concern
+
+    type restriction_options = { allowed_ips: Array[String] | ^() -> Array[String], on_denied: (^() -> void)? }
+
+    def action_ip_restrictions: () -> Hash[Symbol, untyped]
+
+    def action_ip_restrictions=: (Hash[Symbol, untyped]) -> void
+
+    def request: () -> ActionDispatch::Request
+
+    def action_name: () -> String
+
+    def instance_exec: (*untyped) { () -> void } -> void
+
+    def before_action: (*untyped, **untyped) -> void
+
+    # @rbs *actions: Symbol
+    # @rbs allowed_ips: Array[String] | ^() -> Array[String]
+    # @rbs on_denied: (^() -> void)?
+    # @rbs return: void
+    def restrict_ip: (*Symbol actions, allowed_ips: Array[String] | ^() -> Array[String], ?on_denied: (^() -> void)?) -> void
+
+    # @rbs allowed_ips: Array[String] | ^() -> Array[String]
+    # @rbs except: Array[Symbol]
+    # @rbs on_denied: (^() -> void)?
+    # @rbs return: void
+    def restrict_ip_for_all: (allowed_ips: Array[String] | ^() -> Array[String], ?except: Array[Symbol], ?on_denied: (^() -> void)?) -> void
+
+    private
+
+    # @rbs action: Symbol
+    # @rbs return: void
+    def check_ip_restriction: (Symbol action) -> void
+
+    # @rbs return: void
+    def check_ip_restriction_for_all: () -> void
+
+    # @rbs restriction: restriction_options?
+    # @rbs return: void
+    def verify_ip_access: (restriction_options? restriction) -> void
+
+    # @rbs allowed_ips: Array[String] | ^() -> Array[String]
+    # @rbs return: Array[String]
+    def resolve_allowed_ips: (Array[String] | ^() -> Array[String] allowed_ips) -> Array[String]
+
+    # @rbs client_ip: String?
+    # @rbs return: void
+    def log_ip_denial: (String? client_ip) -> void
+  end
+end

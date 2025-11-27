@@ -1,0 +1,19 @@
+# Generated from lib/action_ip_filter/ip_matcher.rb with RBS::Inline
+
+module ActionIpFilter
+  module IpMatcher
+    # @rbs client_ip: String?
+    # @rbs allowed_ips: Array[String]
+    # @rbs return: bool
+    def self.allowed?: (String? client_ip, Array[String] allowed_ips) -> bool
+
+    # @rbs ip_string: String
+    # @rbs return: IPAddr?
+    private def self.parse_ip: (String ip_string) -> IPAddr?
+
+    # @rbs client_addr: IPAddr
+    # @rbs allowed_ip: String
+    # @rbs return: bool
+    private def self.match?: (IPAddr client_addr, String allowed_ip) -> bool
+  end
+end

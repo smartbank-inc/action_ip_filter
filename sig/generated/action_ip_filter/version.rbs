@@ -1,0 +1,5 @@
+# Generated from lib/action_ip_filter/version.rb with RBS::Inline
+
+module ActionIpFilter
+  VERSION: String
+end

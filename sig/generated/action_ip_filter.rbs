@@ -1,0 +1,12 @@
+# Generated from lib/action_ip_filter.rb with RBS::Inline
+
+module ActionIpFilter
+  def self.test_mode=: (bool) -> bool
+
+  @test_mode: bool
+
+  attr_accessor test_mode: bool
+
+  # @rbs return: bool
+  def self.test_mode?: () -> bool
+end
