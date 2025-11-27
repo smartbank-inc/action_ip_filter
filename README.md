@@ -1,12 +1,12 @@
-# ActionIpFilter
+# action_ip_filter
 
 A lightweight gem that provides IP address restrictions for Rails controllers at the action level.
 
-## Why ActionIpFilter?
+## Why action_ip_filter?
 
-Unlike Rack middleware solutions (e.g., `rack-attack`), ActionIpFilter operates at the controller level:
+Unlike Rack middleware solutions (e.g., `rack-attack`), action_ip_filter operates at the controller level:
 
-| Feature | rack-attack | ActionIpFilter |
+| Feature | rack-attack | action_ip_filter |
 |---------|-------------|----------------|
 | Layer | Rack middleware (all requests) | Controller before_action |
 | Granularity | Path/IP based | Controller/Action based |
