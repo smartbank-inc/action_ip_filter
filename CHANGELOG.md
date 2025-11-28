@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [0.2.0] - 2025-11-28
+
+### Breaking Changes
+
+- Change the interface: `s/restrict_ip/filter_ip/g`
+
 ## [0.1.1] - 2025-11-28
 
 ### Maintenance
