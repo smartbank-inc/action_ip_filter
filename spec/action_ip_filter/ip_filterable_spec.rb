@@ -1,296 +1,457 @@
 # frozen_string_literal: true
 
-require "ostruct"
+require "rails_helper"
 
-class FakeController
-  extend ActiveSupport::Concern
-
-  class << self
-    def class_attribute(name, default:)
-      class_eval do
-        instance_variable_set(:"@#{name}", default.dup)
-        define_singleton_method(name) { instance_variable_get(:"@#{name}") }
-        define_singleton_method(:"#{name}=") { |val| instance_variable_set(:"@#{name}", val) }
-        define_method(name) { self.class.send(name) }
-      end
-    end
-
-    def before_action(callback, **options)
-      @before_actions ||= []
-      @before_actions << {callback: callback, options: options}
-    end
-
-    def before_actions
-      @before_actions ||= []
-    end
-  end
-
-  attr_accessor :request, :rendered_status, :action_name
-
-  def head(status)
-    @rendered_status = status
-  end
-
-  def initialize
-    @action_name = "index"
-  end
-
-  def run_before_actions(action)
-    self.class.before_actions.each do |ba|
-      only = ba[:options][:only]
-      except = ba[:options][:except]
-      next if only && !Array(only).include?(action)
-      next if except && Array(except).include?(action)
-
-      case ba[:callback]
-      when Symbol
-        send(ba[:callback])
-      when Proc
-        instance_exec(&ba[:callback])
-      end
-    end
-  end
-end
-
-RSpec.describe ActionIpFilter::IpFilterable do
-  # Build a fresh controller class for each test to avoid state leakage
-  def build_controller_class
-    klass = Class.new(FakeController)
-    klass.include(ActionIpFilter::IpFilterable)
-    klass
-  end
-
-  let(:controller_class) { build_controller_class }
-
-  let(:mock_request) do
-    OpenStruct.new(remote_ip: "192.168.1.100")
-  end
-
-  let(:controller) do
-    c = controller_class.new
-    c.request = mock_request
-    c
-  end
-
-  before do
-    ActionIpFilter.reset_configuration!
-    ActionIpFilter.test_mode = false
-  end
-
+RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
   describe ".restrict_ip" do
-    it "registers before_action for specified actions" do
-      controller_class.restrict_ip(:show, :edit, allowed_ips: ["192.168.1.0/24"])
+    controller(ActionController::Base) do
+      include ActionIpFilter::IpFilterable
 
-      expect(controller_class.action_ip_restrictions).to include(:show, :edit)
-      expect(controller_class.before_actions.size).to eq(2)
+      restrict_ip :index, allowed_ips: ["192.168.1.0/24"]
+      restrict_ip :show, :edit, allowed_ips: ["10.0.0.0/8"]
+      restrict_ip :custom_denied, allowed_ips: -> { ["10.0.0.0/8"] }, on_denied: -> { head :unauthorized }
+
+      def index
+        render json: {status: "ok"}
+      end
+
+      def show
+        render json: {status: "ok"}
+      end
+
+      def edit
+        render json: {status: "ok"}
+      end
+
+      def custom_denied
+        render json: {status: "ok"}
+      end
+
+      def unrestricted
+        render json: {status: "ok"}
+      end
+
+      def dynamic_ips
+        render json: {status: "ok"}
+      end
+
+      def allowed_ip_list
+        ["192.168.1.0/24"]
+      end
+    end
+
+    before do
+      routes.draw do
+        get "index" => "anonymous#index"
+        get "show" => "anonymous#show"
+        get "edit" => "anonymous#edit"
+        get "custom_denied" => "anonymous#custom_denied"
+        get "unrestricted" => "anonymous#unrestricted"
+        get "dynamic_ips" => "anonymous#dynamic_ips"
+      end
+    end
+
+    it "registers before_action for specified actions" do
+      expect(controller.class.action_ip_restrictions).to include(:index, :show, :edit)
     end
 
     it "stores allowed_ips and on_denied in action_ip_restrictions" do
-      on_denied_proc = -> { head :unauthorized }
-      controller_class.restrict_ip(:index, allowed_ips: ["10.0.0.0/8"], on_denied: on_denied_proc)
-
-      restriction = controller_class.action_ip_restrictions[:index]
-      expect(restriction[:allowed_ips]).to eq(["10.0.0.0/8"])
-      expect(restriction[:on_denied]).to eq(on_denied_proc)
+      restriction = controller.class.action_ip_restrictions[:custom_denied]
+      expect(restriction[:allowed_ips]).to be_a(Proc)
+      expect(restriction[:on_denied]).to be_a(Proc)
     end
 
-    it "allows access from allowed IP" do
-      controller_class.restrict_ip(:index, allowed_ips: ["192.168.1.0/24"])
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
+    context "allowed IP address" do
+      before do
+        request.env["REMOTE_ADDR"] = "192.168.1.100"
+      end
 
-      expect(controller.rendered_status).to be_nil
+      it "allows access" do
+        get :index
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to eq("status" => "ok")
+      end
     end
 
-    it "denies access from non-allowed IP" do
-      controller_class.restrict_ip(:index, allowed_ips: ["10.0.0.0/8"])
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
+    context "denied IP address" do
+      before do
+        request.env["REMOTE_ADDR"] = "10.0.0.1"
+      end
 
-      expect(controller.rendered_status).to eq(:forbidden)
+      it "returns :forbidden" do
+        get :index
+        expect(response).to have_http_status(:forbidden)
+      end
     end
 
-    it "uses custom on_denied callback when provided" do
-      controller_class.restrict_ip(:index, allowed_ips: ["10.0.0.0/8"], on_denied: -> { head :unauthorized })
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
+    context "custom on_denied callback" do
+      before do
+        request.env["REMOTE_ADDR"] = "192.168.2.1"
+      end
 
-      expect(controller.rendered_status).to eq(:unauthorized)
+      it "uses custom on_denied callback" do
+        get :custom_denied
+        expect(response).to have_http_status(:unauthorized)
+      end
     end
 
-    it "accepts a Proc for allowed_ips" do
-      controller_class.restrict_ip(:index, allowed_ips: -> { ["192.168.1.0/24"] })
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
+    context "Proc for allowed_ips" do
+      controller(ActionController::Base) do
+        include ActionIpFilter::IpFilterable
 
-      expect(controller.rendered_status).to be_nil
+        restrict_ip :dynamic_ips, allowed_ips: -> { ["192.168.1.0/24"] }
+
+        def dynamic_ips
+          render json: {status: "ok"}
+        end
+      end
+
+      before do
+        routes.draw do
+          get "dynamic_ips" => "anonymous#dynamic_ips"
+        end
+        request.env["REMOTE_ADDR"] = "192.168.1.100"
+      end
+
+      it "accepts and evaluates Proc" do
+        get :dynamic_ips
+        expect(response).to have_http_status(:ok)
+      end
     end
 
-    it "evaluates Proc in controller context" do
-      controller_class.class_eval do
+    context "Proc evaluated in controller context" do
+      controller(ActionController::Base) do
+        include ActionIpFilter::IpFilterable
+
+        restrict_ip :index, allowed_ips: -> { allowed_ip_list }
+
+        def index
+          render json: {status: "ok"}
+        end
+
         def allowed_ip_list
           ["192.168.1.0/24"]
         end
       end
-      controller_class.restrict_ip(:index, allowed_ips: -> { allowed_ip_list })
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
 
-      expect(controller.rendered_status).to be_nil
+      before do
+        routes.draw do
+          get "index" => "anonymous#index"
+        end
+        request.env["REMOTE_ADDR"] = "192.168.1.100"
+      end
+
+      it "evaluates Proc in controller context" do
+        get :index
+        expect(response).to have_http_status(:ok)
+      end
     end
   end
 
   describe ".restrict_ip_for_all" do
+    controller(ActionController::Base) do
+      include ActionIpFilter::IpFilterable
+
+      restrict_ip_for_all allowed_ips: ["192.168.1.0/24"]
+
+      def any_action
+        render json: {status: "ok"}
+      end
+    end
+
+    before do
+      routes.draw do
+        get "any_action" => "anonymous#any_action"
+      end
+    end
+
     it "registers before_action for all actions" do
-      controller_class.restrict_ip_for_all(allowed_ips: ["192.168.1.0/24"])
-
-      expect(controller_class.action_ip_restrictions).to include(:"all-marker")
-      expect(controller_class.before_actions.size).to eq(1)
+      expect(controller.class.action_ip_restrictions).to include(:"all-marker")
     end
 
-    it "allows access from allowed IP" do
-      controller_class.restrict_ip_for_all(allowed_ips: ["192.168.1.0/24"])
-      controller.run_before_actions(:any_action)
+    context "allowed IP address" do
+      before do
+        request.env["REMOTE_ADDR"] = "192.168.1.100"
+      end
 
-      expect(controller.rendered_status).to be_nil
+      it "allows access" do
+        get :any_action
+        expect(response).to have_http_status(:ok)
+      end
     end
 
-    it "denies access from non-allowed IP" do
-      controller_class.restrict_ip_for_all(allowed_ips: ["10.0.0.0/8"])
-      controller.run_before_actions(:any_action)
+    context "denied IP address" do
+      before do
+        request.env["REMOTE_ADDR"] = "10.0.0.1"
+      end
 
-      expect(controller.rendered_status).to eq(:forbidden)
+      it "returns :forbidden" do
+        get :any_action
+        expect(response).to have_http_status(:forbidden)
+      end
     end
 
-    it "respects except option" do
-      controller_class.restrict_ip_for_all(allowed_ips: ["10.0.0.0/8"], except: [:public_action])
+    context "with except option" do
+      controller(ActionController::Base) do
+        include ActionIpFilter::IpFilterable
 
-      # Denied for non-excepted action
-      controller.run_before_actions(:private_action)
-      expect(controller.rendered_status).to eq(:forbidden)
+        restrict_ip_for_all allowed_ips: ["10.0.0.0/8"], except: [:public_action]
 
-      # Reset and test excepted action
-      controller.rendered_status = nil
-      controller.run_before_actions(:public_action)
-      expect(controller.rendered_status).to be_nil
+        def private_action
+          render json: {status: "ok"}
+        end
+
+        def public_action
+          render json: {status: "ok"}
+        end
+      end
+
+      before do
+        routes.draw do
+          get "private_action" => "anonymous#private_action"
+          get "public_action" => "anonymous#public_action"
+        end
+        request.env["REMOTE_ADDR"] = "192.168.1.100"
+      end
+
+      it "denies non-excepted action" do
+        get :private_action
+        expect(response).to have_http_status(:forbidden)
+      end
+
+      it "allows excepted action" do
+        get :public_action
+        expect(response).to have_http_status(:ok)
+      end
     end
   end
 
   describe "test_mode" do
+    controller(ActionController::Base) do
+      include ActionIpFilter::IpFilterable
+
+      restrict_ip :index, allowed_ips: ["10.0.0.0/8"]
+
+      def index
+        render json: {status: "ok"}
+      end
+    end
+
+    before do
+      routes.draw do
+        get "index" => "anonymous#index"
+      end
+      request.env["REMOTE_ADDR"] = "192.168.1.100"
+    end
+
     it "skips IP verification when test_mode is enabled" do
       ActionIpFilter.test_mode = true
-      controller_class.restrict_ip(:index, allowed_ips: ["10.0.0.0/8"])
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
-
-      expect(controller.rendered_status).to be_nil
+      get :index
+      expect(response).to have_http_status(:ok)
     end
   end
 
   describe "custom ip_resolver" do
-    it "uses configured ip_resolver" do
-      ActionIpFilter.configure do |config|
-        config.ip_resolver = ->(request) { request.env["HTTP_X_REAL_IP"] }
+    controller(ActionController::Base) do
+      include ActionIpFilter::IpFilterable
+
+      restrict_ip :index, allowed_ips: ["10.0.0.0/8"]
+
+      def index
+        render json: {status: "ok"}
       end
+    end
 
-      mock_request_with_env = OpenStruct.new(env: {"HTTP_X_REAL_IP" => "10.0.0.1"})
-      controller.request = mock_request_with_env
+    before do
+      routes.draw do
+        get "index" => "anonymous#index"
+      end
+      ActionIpFilter.configure do |config|
+        config.ip_resolver = ->(req) { req.env["HTTP_X_REAL_IP"] }
+      end
+      request.env["HTTP_X_REAL_IP"] = "10.0.0.1"
+    end
 
-      controller_class.restrict_ip(:index, allowed_ips: ["10.0.0.0/8"])
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
-
-      expect(controller.rendered_status).to be_nil
+    it "uses configured ip_resolver" do
+      get :index
+      expect(response).to have_http_status(:ok)
     end
   end
 
   describe "global on_denied" do
-    it "uses global on_denied when action-specific one is not provided" do
+    controller(ActionController::Base) do
+      include ActionIpFilter::IpFilterable
+
+      restrict_ip :index, allowed_ips: ["10.0.0.0/8"]
+
+      def index
+        render json: {status: "ok"}
+      end
+    end
+
+    before do
+      routes.draw do
+        get "index" => "anonymous#index"
+      end
       ActionIpFilter.configure do |config|
         config.on_denied = -> { head :service_unavailable }
       end
+      request.env["REMOTE_ADDR"] = "192.168.1.100"
+    end
 
-      controller_class.restrict_ip(:index, allowed_ips: ["10.0.0.0/8"])
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
-
-      expect(controller.rendered_status).to eq(:service_unavailable)
+    it "uses global on_denied when action-specific one is not provided" do
+      get :index
+      expect(response).to have_http_status(:service_unavailable)
     end
   end
 
   describe "logging" do
     let(:logger) { instance_double("Logger") }
 
-    before do
-      ActionIpFilter.configure do |config|
-        config.logger = logger
-        config.log_denials = true
+    controller(ActionController::Base) do
+      include ActionIpFilter::IpFilterable
+
+      restrict_ip :index, allowed_ips: ["10.0.0.0/8"]
+
+      def index
+        render json: {status: "ok"}
       end
     end
 
-    it "logs denial when log_denials is true" do
-      expect(logger).to receive(:warn).and_yield
-
-      controller_class.restrict_ip(:index, allowed_ips: ["10.0.0.0/8"])
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
+    before do
+      routes.draw do
+        get "index" => "anonymous#index"
+      end
+      request.env["REMOTE_ADDR"] = "192.168.1.100"
     end
 
-    it "does not log when log_denials is false" do
-      ActionIpFilter.configuration.log_denials = false
-      expect(logger).not_to receive(:warn)
+    context "log_denials is true" do
+      before do
+        ActionIpFilter.configure do |config|
+          config.logger = logger
+          config.log_denials = true
+        end
+      end
 
-      controller_class.restrict_ip(:index, allowed_ips: ["10.0.0.0/8"])
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
+      it "logs denial with correct message" do
+        expect(logger).to receive(:warn) do |&block|
+          message = block.call
+          expect(message).to eq("[ActionIpFilter] Access denied for IP: 192.168.1.100 on AnonymousController#index")
+        end
+        get :index
+      end
     end
 
-    it "does not log when logger is nil" do
-      ActionIpFilter.configuration.logger = nil
+    context "log_denials is false" do
+      before do
+        ActionIpFilter.configure do |config|
+          config.logger = logger
+          config.log_denials = false
+        end
+      end
 
-      # Should not raise error
-      controller_class.restrict_ip(:index, allowed_ips: ["10.0.0.0/8"])
-      controller.action_name = "index"
-      expect { controller.run_before_actions(:index) }.not_to raise_error
+      it "does not log" do
+        expect(logger).not_to receive(:warn)
+        get :index
+      end
+    end
+
+    context "logger is nil" do
+      before do
+        ActionIpFilter.configure do |config|
+          config.logger = nil
+          config.log_denials = true
+        end
+      end
+
+      it "does not raise error" do
+        expect { get :index }.not_to raise_error
+      end
     end
   end
 
   describe "multiple restrictions" do
+    controller(ActionController::Base) do
+      include ActionIpFilter::IpFilterable
+
+      restrict_ip :admin, allowed_ips: ["10.0.0.0/8"]
+      restrict_ip :api, allowed_ips: ["192.168.1.0/24"]
+
+      def admin
+        render json: {status: "ok"}
+      end
+
+      def api
+        render json: {status: "ok"}
+      end
+    end
+
+    before do
+      routes.draw do
+        get "admin" => "anonymous#admin"
+        get "api" => "anonymous#api"
+      end
+      request.env["REMOTE_ADDR"] = "192.168.1.100"
+    end
+
     it "allows different IP lists for different actions" do
-      controller_class.restrict_ip(:admin, allowed_ips: ["10.0.0.0/8"])
-      controller_class.restrict_ip(:api, allowed_ips: ["192.168.1.0/24"])
+      get :admin
+      expect(response).to have_http_status(:forbidden)
 
-      # Request from 192.168.1.100
-      controller.action_name = "admin"
-      controller.run_before_actions(:admin)
-      expect(controller.rendered_status).to eq(:forbidden)
-
-      controller.rendered_status = nil
-      controller.action_name = "api"
-      controller.run_before_actions(:api)
-      expect(controller.rendered_status).to be_nil
+      get :api
+      expect(response).to have_http_status(:ok)
     end
   end
 
   describe "edge cases" do
-    it "handles empty allowed_ips array" do
-      controller_class.restrict_ip(:index, allowed_ips: [])
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
+    context "empty allowed_ips array" do
+      controller(ActionController::Base) do
+        include ActionIpFilter::IpFilterable
 
-      expect(controller.rendered_status).to eq(:forbidden)
-    end
+        restrict_ip :index, allowed_ips: []
 
-    it "handles nil client IP" do
-      ActionIpFilter.configure do |config|
-        config.ip_resolver = ->(_request) {}
+        def index
+          render json: {status: "ok"}
+        end
       end
 
-      controller_class.restrict_ip(:index, allowed_ips: ["192.168.1.0/24"])
-      controller.action_name = "index"
-      controller.run_before_actions(:index)
+      before do
+        routes.draw do
+          get "index" => "anonymous#index"
+        end
+        request.env["REMOTE_ADDR"] = "192.168.1.100"
+      end
 
-      expect(controller.rendered_status).to eq(:forbidden)
+      it "denies all access" do
+        get :index
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "nil client IP" do
+      controller(ActionController::Base) do
+        include ActionIpFilter::IpFilterable
+
+        restrict_ip :index, allowed_ips: ["192.168.1.0/24"]
+
+        def index
+          render json: {status: "ok"}
+        end
+      end
+
+      before do
+        routes.draw do
+          get "index" => "anonymous#index"
+        end
+        ActionIpFilter.configure do |config|
+          config.ip_resolver = ->(_request) {}
+        end
+      end
+
+      it "denies access" do
+        get :index
+        expect(response).to have_http_status(:forbidden)
+      end
     end
   end
 end
