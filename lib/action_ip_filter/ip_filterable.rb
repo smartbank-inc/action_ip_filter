@@ -26,7 +26,7 @@ module ActionIpFilter
       # @rbs allowed_ips: Array[String] | ^() -> Array[String]
       # @rbs on_denied: (^() -> void)?
       # @rbs return: void
-      def restrict_ip(*actions, allowed_ips:, on_denied: nil)
+      def filter_ip(*actions, allowed_ips:, on_denied: nil)
         actions.flatten.each do |action|
           self.action_ip_restrictions = action_ip_restrictions.merge(action.to_sym => {allowed_ips:, on_denied:})
           before_action -> { check_ip_restriction(action) }, only: action
@@ -37,7 +37,7 @@ module ActionIpFilter
       # @rbs except: Array[Symbol]
       # @rbs on_denied: (^() -> void)?
       # @rbs return: void
-      def restrict_ip_for_all(allowed_ips:, except: [], on_denied: nil)
+      def filter_ip_for_all(allowed_ips:, except: [], on_denied: nil)
         # note: hyphen is not allowed in method (i.e., action) names, so it's safe to use it as a marker
         self.action_ip_restrictions = action_ip_restrictions.merge("all-marker": {allowed_ips:, on_denied:})
         before_action :check_ip_restriction_for_all, except:

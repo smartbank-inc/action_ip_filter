@@ -36,13 +36,13 @@ bundle install
 
 ### Basic Usage
 
-Include the concern and use `restrict_ip` to protect specific actions:
+Include the concern and use `filter_ip` to protect specific actions:
 
 ```ruby
 class AdminController < ApplicationController
   include ActionIpFilter::IpFilterable
 
-  restrict_ip :index, :show, allowed_ips: %w[192.0.2.0/24 198.51.100.1]
+  filter_ip :index, :show, allowed_ips: %w[192.0.2.0/24 198.51.100.1]
 
   def index
     # Only accessible from 192.0.2.0/24 or 198.51.100.1
@@ -60,14 +60,14 @@ end
 
 ### Restrict All Actions
 
-Use `restrict_ip_for_all` to protect all actions with optional exceptions:
+Use `filter_ip_for_all` to protect all actions with optional exceptions:
 
 ```ruby
 class WebhooksController < ApplicationController
   include ActionIpFilter::IpFilterable
 
-  restrict_ip_for_all allowed_ips: ENV["WEBHOOK_ALLOWED_IPS"].to_s.split(","),
-                      except: [:health_check]
+  filter_ip_for_all allowed_ips: ENV["WEBHOOK_ALLOWED_IPS"].to_s.split(","),
+                    except: [:health_check]
 
   def stripe
     # Restricted
@@ -87,7 +87,7 @@ Pass a Proc for dynamic IP resolution:
 class SecureController < ApplicationController
   include ActionIpFilter::IpFilterable
 
-  restrict_ip :sensitive_action,
+  filter_ip :sensitive_action,
     allowed_ips: -> { Rails.application.credentials.dig(:allowed_ips) || [] }
 end
 ```
@@ -100,7 +100,7 @@ Customize the response when access is denied. The block is executed via `instanc
 class ApiController < ApplicationController
   include ActionIpFilter::IpFilterable
 
-  restrict_ip :create,
+  filter_ip :create,
     allowed_ips: %w[192.0.2.0/24],
     on_denied: -> { render json: { error: "Access denied from #{request.remote_ip}" }, status: :forbidden }
 end

@@ -3,13 +3,13 @@
 require "rails_helper"
 
 RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
-  describe ".restrict_ip" do
+  describe ".filter_ip" do
     controller(ActionController::Base) do
       include ActionIpFilter::IpFilterable
 
-      restrict_ip :index, allowed_ips: ["192.168.1.0/24"]
-      restrict_ip :show, :edit, allowed_ips: ["10.0.0.0/8"]
-      restrict_ip :custom_denied, allowed_ips: -> { ["10.0.0.0/8"] }, on_denied: -> { head :unauthorized }
+      filter_ip :index, allowed_ips: ["192.168.1.0/24"]
+      filter_ip :show, :edit, allowed_ips: ["10.0.0.0/8"]
+      filter_ip :custom_denied, allowed_ips: -> { ["10.0.0.0/8"] }, on_denied: -> { head :unauthorized }
 
       def index
         render json: {status: "ok"}
@@ -99,7 +99,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
       controller(ActionController::Base) do
         include ActionIpFilter::IpFilterable
 
-        restrict_ip :dynamic_ips, allowed_ips: -> { ["192.168.1.0/24"] }
+        filter_ip :dynamic_ips, allowed_ips: -> { ["192.168.1.0/24"] }
 
         def dynamic_ips
           render json: {status: "ok"}
@@ -123,7 +123,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
       controller(ActionController::Base) do
         include ActionIpFilter::IpFilterable
 
-        restrict_ip :index, allowed_ips: -> { allowed_ip_list }
+        filter_ip :index, allowed_ips: -> { allowed_ip_list }
 
         def index
           render json: {status: "ok"}
@@ -148,11 +148,11 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
     end
   end
 
-  describe ".restrict_ip_for_all" do
+  describe ".filter_ip_for_all" do
     controller(ActionController::Base) do
       include ActionIpFilter::IpFilterable
 
-      restrict_ip_for_all allowed_ips: ["192.168.1.0/24"]
+      filter_ip_for_all allowed_ips: ["192.168.1.0/24"]
 
       def any_action
         render json: {status: "ok"}
@@ -195,7 +195,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
       controller(ActionController::Base) do
         include ActionIpFilter::IpFilterable
 
-        restrict_ip_for_all allowed_ips: ["10.0.0.0/8"], except: [:public_action]
+        filter_ip_for_all allowed_ips: ["10.0.0.0/8"], except: [:public_action]
 
         def private_action
           render json: {status: "ok"}
@@ -230,7 +230,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
     controller(ActionController::Base) do
       include ActionIpFilter::IpFilterable
 
-      restrict_ip :index, allowed_ips: ["10.0.0.0/8"]
+      filter_ip :index, allowed_ips: ["10.0.0.0/8"]
 
       def index
         render json: {status: "ok"}
@@ -255,7 +255,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
     controller(ActionController::Base) do
       include ActionIpFilter::IpFilterable
 
-      restrict_ip :index, allowed_ips: ["10.0.0.0/8"]
+      filter_ip :index, allowed_ips: ["10.0.0.0/8"]
 
       def index
         render json: {status: "ok"}
@@ -282,7 +282,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
     controller(ActionController::Base) do
       include ActionIpFilter::IpFilterable
 
-      restrict_ip :index, allowed_ips: ["10.0.0.0/8"]
+      filter_ip :index, allowed_ips: ["10.0.0.0/8"]
 
       def index
         render json: {status: "ok"}
@@ -311,7 +311,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
     controller(ActionController::Base) do
       include ActionIpFilter::IpFilterable
 
-      restrict_ip :index, allowed_ips: ["10.0.0.0/8"]
+      filter_ip :index, allowed_ips: ["10.0.0.0/8"]
 
       def index
         render json: {status: "ok"}
@@ -374,8 +374,8 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
     controller(ActionController::Base) do
       include ActionIpFilter::IpFilterable
 
-      restrict_ip :admin, allowed_ips: ["10.0.0.0/8"]
-      restrict_ip :api, allowed_ips: ["192.168.1.0/24"]
+      filter_ip :admin, allowed_ips: ["10.0.0.0/8"]
+      filter_ip :api, allowed_ips: ["192.168.1.0/24"]
 
       def admin
         render json: {status: "ok"}
@@ -408,7 +408,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
       controller(ActionController::Base) do
         include ActionIpFilter::IpFilterable
 
-        restrict_ip :index, allowed_ips: []
+        filter_ip :index, allowed_ips: []
 
         def index
           render json: {status: "ok"}
@@ -432,7 +432,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
       controller(ActionController::Base) do
         include ActionIpFilter::IpFilterable
 
-        restrict_ip :index, allowed_ips: ["192.168.1.0/24"]
+        filter_ip :index, allowed_ips: ["192.168.1.0/24"]
 
         def index
           render json: {status: "ok"}
