@@ -102,7 +102,7 @@ class ApiController < ApplicationController
 
   restrict_ip :create,
     allowed_ips: %w[192.0.2.0/24],
-    on_denied: ->(request) { render json: { error: "Access denied from #{request.remote_ip}" }, status: :forbidden }
+    on_denied: -> { render json: { error: "Access denied from #{request.remote_ip}" }, status: :forbidden }
 end
 ```
 
@@ -119,7 +119,7 @@ ActionIpFilter.configure do |config|
   }
 
   # Default denial handler (receives request, executed via instance_exec in controller)
-  config.on_denied = ->(request) { head :forbidden }
+  config.on_denied = -> { head :forbidden }
 
   # Logger for denied requests
   config.logger = Rails.logger
