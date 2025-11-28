@@ -40,7 +40,7 @@ Include the concern and use `restrict_ip` to protect specific actions:
 
 ```ruby
 class AdminController < ApplicationController
-  include ActionIpFilter::ControllerMethods
+  include ActionIpFilter::IpFilterable
 
   restrict_ip :index, :show, allowed_ips: %w[192.0.2.0/24 198.51.100.1]
 
@@ -64,7 +64,7 @@ Use `restrict_ip_for_all` to protect all actions with optional exceptions:
 
 ```ruby
 class WebhooksController < ApplicationController
-  include ActionIpFilter::ControllerMethods
+  include ActionIpFilter::IpFilterable
 
   restrict_ip_for_all allowed_ips: ENV["WEBHOOK_ALLOWED_IPS"].to_s.split(","),
                       except: [:health_check]
@@ -85,7 +85,7 @@ Pass a Proc for dynamic IP resolution:
 
 ```ruby
 class SecureController < ApplicationController
-  include ActionIpFilter::ControllerMethods
+  include ActionIpFilter::IpFilterable
 
   restrict_ip :sensitive_action,
     allowed_ips: -> { Rails.application.credentials.dig(:allowed_ips) || [] }
@@ -98,7 +98,7 @@ Customize the response when access is denied. The block is executed via `instanc
 
 ```ruby
 class ApiController < ApplicationController
-  include ActionIpFilter::ControllerMethods
+  include ActionIpFilter::IpFilterable
 
   restrict_ip :create,
     allowed_ips: %w[192.0.2.0/24],

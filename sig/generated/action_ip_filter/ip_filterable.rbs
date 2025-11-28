@@ -1,7 +1,7 @@
-# Generated from lib/action_ip_filter/controller_methods.rb with RBS::Inline
+# Generated from lib/action_ip_filter/ip_filterable.rb with RBS::Inline
 
 module ActionIpFilter
-  module ControllerMethods
+  module IpFilterable
     extend ActiveSupport::Concern
 
     type restriction_options = { allowed_ips: Array[String] | ^() -> Array[String], on_denied: (^() -> void)? }

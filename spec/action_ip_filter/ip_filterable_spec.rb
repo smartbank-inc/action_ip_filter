@@ -52,11 +52,11 @@ class FakeController
   end
 end
 
-RSpec.describe ActionIpFilter::ControllerMethods do
+RSpec.describe ActionIpFilter::IpFilterable do
   # Build a fresh controller class for each test to avoid state leakage
   def build_controller_class
     klass = Class.new(FakeController)
-    klass.include(ActionIpFilter::ControllerMethods)
+    klass.include(ActionIpFilter::IpFilterable)
     klass
   end
 

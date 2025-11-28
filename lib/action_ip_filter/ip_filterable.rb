@@ -3,7 +3,7 @@
 require "active_support/concern"
 
 module ActionIpFilter
-  module ControllerMethods
+  module IpFilterable
     extend ActiveSupport::Concern
 
     included do
