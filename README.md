@@ -18,6 +18,24 @@ Unlike Rack middleware solutions (e.g., `rack-attack`), action_ip_filter operate
 - Minimal overhead (no processing for unrestricted endpoints)
 - Simple, declarative configuration per controller
 
+### Why not Rails native `rate_limit`?
+
+Rails 8.0 introduced `rate_limit`, which could be adapted for IP filtering:
+
+```ruby
+# a slightly tricky approach involving rate_limit
+rate_limit to: 0, within: 0.second, only: :create, unless: -> {
+  allowed_ips.include?(request.remote_ip)
+}
+```
+
+However, this approach has drawbacks:
+- Semantic mismatch: `rate_limit` is designed for rate limiting, not access control
+- Requires cache store: `rate_limit` needs a cache backend for counting, unnecessary for simple IP allowlists
+- Inverted logic: You're "rate limiting everyone except allowed IPs" rather than "allowing specific IPs"
+
+action_ip_filter provides a purpose-built, declarative API for IP-based access control.
+
 ## Installation
 
 Add to your Gemfile:
