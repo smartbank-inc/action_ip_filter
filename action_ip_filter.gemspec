@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name = "action_ip_filter"
   spec.version = ActionIpFilter::VERSION
   spec.authors = ["SmartBank, Inc."]
-  spec.email = ["common@smartbank.co.jp"]
+  spec.email = ["moznion@mail.moznion.net"]
 
   spec.summary = "IP address restriction concern for Rails controllers"
   spec.description = "A lightweight concern that allows IP address restrictions on specific controller actions. Unlike Rack middleware solutions, this operates at the controller level for minimal overhead."
