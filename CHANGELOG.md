@@ -4,7 +4,7 @@
 
 ### Breaking Changes
 
-#### Change `ip_resolver` to use controller context instead of request parameter
+#### Change `ip_resolver` to use controller context instead of request parameter [#1](https://github.com/smartbank-inc/action_ip_filter/pull/1)
 
 Usage has changed. The `request` parameter in the Proc was previously required, but it is no longer needed. You can now access controller methods (`request`, `params`, etc.) directly instead of receiving `request` as an argument.
 
