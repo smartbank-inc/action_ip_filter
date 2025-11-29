@@ -1,4 +1,4 @@
-# action_ip_filter [![CI](https://github.com/smartbank-inc/action_ip_filter/actions/workflows/ci.yml/badge.svg)](https://github.com/smartbank-inc/action_ip_filter/actions/workflows/ci.yml) ![Gem Version](https://img.shields.io/gem/v/action_ip_filter)
+# action_ip_filter [![CI](https://github.com/smartbank-inc/action_ip_filter/actions/workflows/ci.yml/badge.svg)](https://github.com/smartbank-inc/action_ip_filter/actions/workflows/ci.yml) [![Gem Version](https://img.shields.io/gem/v/action_ip_filter)](https://rubygems.org/gems/action_ip_filter)
 
 A lightweight gem that provides IP address restrictions for Rails controllers at the action level.
 
