@@ -132,7 +132,7 @@ Configure global settings in an initializer:
 # config/initializers/action_ip_filter.rb
 ActionIpFilter.configure do |config|
   # Custom IP resolver (default: request.remote_ip)
-  config.ip_resolver = ->(request) {
+  config.ip_resolver = -> {
     request.headers["X-Forwarded-For"]&.split(",")&.first&.strip || request.remote_ip
   }
 
@@ -151,7 +151,7 @@ end
 
 | Option | Default                             | Description                                        |
 |--------|-------------------------------------|----------------------------------------------------|
-| `ip_resolver` | `->(request) { request.remote_ip }` | Proc that extracts client IP from request |
+| `ip_resolver` | `-> { request.remote_ip }` | Proc that extracts client IP from request |
 | `on_denied` | `-> { head :forbidden }`            | Handler called when access is denied (returns 403) |
 | `logger` | `Rails.logger`                      | Logger instance for denied request logging |
 | `log_denials` | `true`                              | Whether to log denied requests as warn level |

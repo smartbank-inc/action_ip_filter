@@ -267,7 +267,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
         get "index" => "anonymous#index"
       end
       ActionIpFilter.configure do |config|
-        config.ip_resolver = ->(req) { req.env["HTTP_X_REAL_IP"] }
+        config.ip_resolver = -> { request.env["HTTP_X_REAL_IP"] }
       end
       request.env["HTTP_X_REAL_IP"] = "10.0.0.1"
     end
@@ -444,7 +444,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
           get "index" => "anonymous#index"
         end
         ActionIpFilter.configure do |config|
-          config.ip_resolver = ->(_request) {}
+          config.ip_resolver = -> {}
         end
       end
 
