@@ -2,7 +2,7 @@
 
 module ActionIpFilter
   class Configuration
-    @ip_resolver: ^(ActionDispatch::Request) -> String?
+    @ip_resolver: ^() -> String?
 
     @on_denied: ^() -> void
 
@@ -10,7 +10,7 @@ module ActionIpFilter
 
     @log_denials: bool
 
-    attr_accessor ip_resolver: ^(ActionDispatch::Request) -> String?
+    attr_accessor ip_resolver: ^() -> String?
 
     attr_accessor on_denied: ^() -> void
 

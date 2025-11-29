@@ -62,7 +62,7 @@ module ActionIpFilter
     def verify_ip_access(restriction)
       return if restriction.nil? || ActionIpFilter.test_mode?
 
-      client_ip = ActionIpFilter.configuration.ip_resolver.call(request)
+      client_ip = instance_exec(&ActionIpFilter.configuration.ip_resolver) #: String?
       allowed_ips = resolve_allowed_ips(restriction[:allowed_ips])
 
       unless IpMatcher.allowed?(client_ip, allowed_ips)

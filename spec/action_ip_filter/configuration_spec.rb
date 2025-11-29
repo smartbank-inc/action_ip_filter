@@ -25,8 +25,10 @@ RSpec.describe ActionIpFilter::Configuration do
     it "calls remote_ip on request" do
       config = described_class.new
       request = double("request", remote_ip: "192.168.1.1")
+      context = double("controller", request:)
 
-      expect(config.ip_resolver.call(request)).to eq("192.168.1.1")
+      result = context.instance_exec(&config.ip_resolver)
+      expect(result).to eq("192.168.1.1")
     end
   end
 end
@@ -38,7 +40,7 @@ RSpec.describe ActionIpFilter do
     end
 
     it "allows setting custom ip_resolver" do
-      custom_resolver = ->(request) { request.headers["X-Real-IP"] }
+      custom_resolver = -> { request.headers["X-Real-IP"] }
 
       described_class.configure do |config|
         config.ip_resolver = custom_resolver
