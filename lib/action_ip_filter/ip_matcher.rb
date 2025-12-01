@@ -33,13 +33,8 @@ module ActionIpFilter
       # @rbs allowed_ip: String
       # @rbs return: bool
       def match?(client_addr, allowed_ip)
-        if allowed_ip.include?("/")
-          range = IPAddr.new(allowed_ip)
-          range.include?(client_addr)
-        else
-          allowed_addr = IPAddr.new(allowed_ip)
-          client_addr == allowed_addr
-        end
+        allowed_addr = IPAddr.new(allowed_ip)
+        allowed_addr.include?(client_addr)
       rescue IPAddr::InvalidAddressError
         false
       end
