@@ -7,8 +7,8 @@ module ActionIpFilter
     extend ActiveSupport::Concern
 
     # @rbs!
-    #   def action_name: () -> String
-    #   def instance_exec: [T] (*untyped) { () -> T } -> T
+    #   def instance_exec: [T] () { () -> T } -> T
+    #                    | (Logger, String?) { (Logger, String?) -> void } -> void
     #   def before_action: (*untyped, **untyped) -> void
 
     class_methods do
@@ -57,9 +57,10 @@ module ActionIpFilter
       logger = ActionIpFilter.configuration.logger
       return if logger.nil?
 
-      logger.warn do
-        "[ActionIpFilter] Access denied for IP: #{client_ip} on #{self.class.name}##{action_name}"
-      end
+      log_denial_message = ActionIpFilter.configuration.log_denial_message
+      return if log_denial_message.nil?
+
+      instance_exec(logger, client_ip, &log_denial_message)
     end
   end
 end

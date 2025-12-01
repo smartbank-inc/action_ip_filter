@@ -6,18 +6,33 @@ module ActionIpFilter
     # @rbs @on_denied: ^() -> void
     # @rbs @logger: Logger?
     # @rbs @log_denials: bool
+    # @rbs @log_denial_message: ^(Logger, String?) -> void
+
+    # @rbs!
+    #   interface _Request
+    #     def remote_ip: () -> String
+    #   end
+    #
+    #   def action_name: () -> String
+    #   def controller_name: () -> String
+    #   def head: (Symbol) -> void
+    #   def request: () -> _Request
 
     attr_accessor :ip_resolver #: ^() -> String?
     attr_accessor :on_denied #: ^() -> void
     attr_accessor :logger #: Logger?
     attr_accessor :log_denials #: bool
+    attr_accessor :log_denial_message #: ^(Logger, String?) -> void
 
     # @rbs return: void
     def initialize
-      @ip_resolver = -> { request.remote_ip } # steep:ignore NoMethod
-      @on_denied = -> { head :forbidden } # steep:ignore NoMethod
+      @ip_resolver = -> { request.remote_ip }
+      @on_denied = -> { head :forbidden }
       @logger = nil
       @log_denials = true
+      @log_denial_message = ->(logger, client_ip) {
+        logger.warn("[ActionIpFilter] Access denied for IP: #{client_ip} on #{self.class.name}##{action_name}")
+      }
     end
   end
 

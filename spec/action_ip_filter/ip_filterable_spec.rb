@@ -367,10 +367,24 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
       end
 
       it "logs denial with correct message" do
-        expect(logger).to receive(:warn) do |&block|
-          message = block.call
-          expect(message).to eq("[ActionIpFilter] Access denied for IP: 192.168.1.100 on AnonymousController#index")
+        expect(logger).to receive(:warn).with("[ActionIpFilter] Access denied for IP: 192.168.1.100 on AnonymousController#index")
+        get :index
+      end
+    end
+
+    context "custom log_denial_message" do
+      before do
+        ActionIpFilter.configure do |config|
+          config.logger = logger
+          config.log_denials = true
+          config.log_denial_message = ->(logger, client_ip) {
+            logger.warn("Blocked #{client_ip} at #{controller_name}##{action_name}")
+          }
         end
+      end
+
+      it "logs denial with custom message" do
+        expect(logger).to receive(:warn).with("Blocked 192.168.1.100 at anonymous#index")
         get :index
       end
     end
