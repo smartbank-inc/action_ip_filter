@@ -54,13 +54,57 @@ bundle install
 
 ### Basic Usage
 
-Include the concern and use `filter_ip` to protect specific actions:
+Include the concern and use `filter_ip` to protect all actions when neither `:only` nor `:except` is specified:
 
 ```ruby
 class AdminController < ApplicationController
   include ActionIpFilter::IpFilterable
 
-  filter_ip :index, :show, allowed_ips: %w[192.0.2.0/24 198.51.100.1]
+  filter_ip "192.0.2.0/24", "198.51.100.1"
+
+  def index
+    # Only accessible from 192.0.2.0/24 or 198.51.100.1
+  end
+
+  def show
+    # Also restricted
+  end
+
+  def public_action
+    # Also restricted
+  end
+end
+```
+
+#### With modifiers
+
+```ruby
+class AdminController < ApplicationController
+  include ActionIpFilter::IpFilterable
+
+  filter_ip "192.0.2.0/24", "198.51.100.1", only: [:index, :show]
+
+  def index
+    # Only accessible from 192.0.2.0/24 or 198.51.100.1
+  end
+
+  def show
+    # Also restricted
+  end
+
+  def public_action
+    # Not restricted
+  end
+end
+```
+
+The above example is functionally equivalent to the following:
+
+```ruby
+class AdminController < ApplicationController
+  include ActionIpFilter::IpFilterable
+
+  filter_ip "192.0.2.0/24", "198.51.100.1", except: [:public_action]
 
   def index
     # Only accessible from 192.0.2.0/24 or 198.51.100.1
@@ -84,8 +128,17 @@ Pass a Proc for dynamic IP resolution:
 class SecureController < ApplicationController
   include ActionIpFilter::IpFilterable
 
-  filter_ip :sensitive_action,
-    allowed_ips: -> { Rails.application.credentials.dig(:allowed_ips) || [] }
+  filter_ip -> { Rails.application.credentials.dig(:allowed_ips) || [] }
+end
+```
+
+You can also combine static IPs with dynamic resolution:
+
+```ruby
+class SecureController < ApplicationController
+  include ActionIpFilter::IpFilterable
+
+  filter_ip "192.0.2.0/24", -> { Rails.application.credentials.dig(:allowed_ips) || [] }
 end
 ```
 
@@ -97,8 +150,7 @@ Customize the response when access is denied. The block is executed via `instanc
 class ApiController < ApplicationController
   include ActionIpFilter::IpFilterable
 
-  filter_ip :create,
-    allowed_ips: %w[192.0.2.0/24],
+  filter_ip "192.0.2.0/24",
     on_denied: -> { render json: { error: "Access denied from #{request.remote_ip}" }, status: :forbidden }
 end
 ```
