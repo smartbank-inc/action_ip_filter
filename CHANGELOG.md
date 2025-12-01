@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.3.1] - 2025-12-01
+
+- Simplify IpMatcher#match? by removing unnecessary branching [#3](https://github.com/smartbank-inc/action_ip_filter/pull/3)
+
 ## [0.3.0] - 2025-11-29
 
 ### Breaking Changes
