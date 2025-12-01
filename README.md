@@ -76,27 +76,6 @@ class AdminController < ApplicationController
 end
 ```
 
-### Restrict All Actions
-
-Use `filter_ip_for_all` to protect all actions with optional exceptions:
-
-```ruby
-class WebhooksController < ApplicationController
-  include ActionIpFilter::IpFilterable
-
-  filter_ip_for_all allowed_ips: ENV["WEBHOOK_ALLOWED_IPS"].to_s.split(","),
-                    except: [:health_check]
-
-  def stripe
-    # Restricted
-  end
-
-  def health_check
-    # Not restricted
-  end
-end
-```
-
 ### Dynamic IP Lists
 
 Pass a Proc for dynamic IP resolution:

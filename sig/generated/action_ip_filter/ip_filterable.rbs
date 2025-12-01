@@ -24,12 +24,6 @@ module ActionIpFilter
     # @rbs return: void
     def filter_ip: (*Symbol actions, allowed_ips: Array[String] | ^() -> Array[String], ?on_denied: (^() -> void)?) -> void
 
-    # @rbs allowed_ips: Array[String] | ^() -> Array[String]
-    # @rbs except: Array[Symbol]
-    # @rbs on_denied: (^() -> void)?
-    # @rbs return: void
-    def filter_ip_for_all: (allowed_ips: Array[String] | ^() -> Array[String], ?except: Array[Symbol], ?on_denied: (^() -> void)?) -> void
-
     private
 
     # @rbs action: Symbol
