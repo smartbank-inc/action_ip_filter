@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module ActionIpFilter
-  VERSION = "0.3.1" #: String
+  VERSION = "0.4.0" #: String
 end

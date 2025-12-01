@@ -132,6 +132,8 @@ class SecureController < ApplicationController
 end
 ```
 
+The Proc must return a value of type `Array[String]`.
+
 You can also combine static IPs with dynamic resolution:
 
 ```ruby
