@@ -12,7 +12,7 @@ module ActionIpFilter
     #   def before_action: (*untyped, **untyped) -> void
 
     class_methods do
-      # @rbs allowed_ips: String | ^() -> Array[String]
+      # @rbs allowed_ips: String | Array[String] | ^() -> Array[String]
       # @rbs on_denied: (^() -> void)?
       # @rbs only: Array[Symbol]?
       # @rbs except: Array[Symbol]?
@@ -24,7 +24,7 @@ module ActionIpFilter
 
     private
 
-    # @rbs allowed_ips: Array[String | ^() -> Array[String]]
+    # @rbs allowed_ips: Array[String | Array[String] | ^() -> Array[String]]
     # @rbs on_denied: (^() -> void)?
     # @rbs return: void
     def verify_ip_access(allowed_ips:, on_denied:)
@@ -38,7 +38,7 @@ module ActionIpFilter
           instance_exec(&allowed_ip)
         else
           [allowed_ip]
-        end
+        end.flatten
 
         IpMatcher.allowed?(client_ip, ips)
       end

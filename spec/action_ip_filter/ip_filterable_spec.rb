@@ -8,7 +8,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
       controller(ActionController::Base) do
         include ActionIpFilter::IpFilterable
 
-        filter_ip "192.168.1.0/24", "10.0.0.1", -> { %w[10.0.0.2 10.0.0.3/32] }, only: [:index]
+        filter_ip "192.168.1.0/24", "10.0.0.1", %w[10.0.0.2 10.0.0.3], -> { %w[10.0.0.4 10.0.0.5/32] }, only: [:index]
         filter_ip "10.0.0.0/8", only: [:show, :edit]
         filter_ip -> { ["10.0.0.0/8"] }, only: [:custom_denied], on_denied: -> { head :unauthorized }
 
@@ -53,7 +53,7 @@ RSpec.describe ActionIpFilter::IpFilterable, type: :controller do
       end
 
       context "allowed IP address" do
-        %w[192.168.1.100 10.0.0.1 10.0.0.2 10.0.0.3].each do |remote_addr|
+        %w[192.168.1.100 10.0.0.1 10.0.0.2 10.0.0.3, 10.0.0.4, 10.0.0.5].each do |remote_addr|
           context do
             before do
               request.env["REMOTE_ADDR"] = remote_addr

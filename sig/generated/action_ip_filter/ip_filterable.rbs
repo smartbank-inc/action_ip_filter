@@ -10,7 +10,7 @@ module ActionIpFilter
 
     def before_action: (*untyped, **untyped) -> void
 
-    # @rbs allowed_ips: String | ^() -> Array[String]
+    # @rbs allowed_ips: String | Array[String] | ^() -> Array[String]
     # @rbs on_denied: (^() -> void)?
     # @rbs only: Array[Symbol]?
     # @rbs except: Array[Symbol]?
@@ -19,10 +19,10 @@ module ActionIpFilter
 
     private
 
-    # @rbs allowed_ips: Array[String | ^() -> Array[String]]
+    # @rbs allowed_ips: Array[String | Array[String] | ^() -> Array[String]]
     # @rbs on_denied: (^() -> void)?
     # @rbs return: void
-    def verify_ip_access: (allowed_ips: Array[String | ^() -> Array[String]], on_denied: (^() -> void)?) -> void
+    def verify_ip_access: (allowed_ips: Array[String | Array[String] | ^() -> Array[String]], on_denied: (^() -> void)?) -> void
 
     # @rbs client_ip: String?
     # @rbs return: void
