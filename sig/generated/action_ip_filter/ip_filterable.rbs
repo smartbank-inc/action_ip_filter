@@ -4,42 +4,25 @@ module ActionIpFilter
   module IpFilterable
     extend ActiveSupport::Concern
 
-    type restriction_options = { allowed_ips: Array[String] | ^() -> Array[String], on_denied: (^() -> void)? }
-
-    def action_ip_restrictions: () -> Hash[Symbol, untyped]
-
-    def action_ip_restrictions=: (Hash[Symbol, untyped]) -> void
-
-    def request: () -> ActionDispatch::Request
-
     def action_name: () -> String
 
-    def instance_exec: (*untyped) { () -> void } -> void
+    def instance_exec: [T] (*untyped) { () -> T } -> T
 
     def before_action: (*untyped, **untyped) -> void
 
-    # @rbs *actions: Symbol
-    # @rbs allowed_ips: Array[String] | ^() -> Array[String]
+    # @rbs allowed_ips: String | ^() -> Array[String]
     # @rbs on_denied: (^() -> void)?
+    # @rbs only: Array[Symbol]?
+    # @rbs except: Array[Symbol]?
     # @rbs return: void
-    def filter_ip: (*Symbol actions, allowed_ips: Array[String] | ^() -> Array[String], ?on_denied: (^() -> void)?) -> void
+    def filter_ip: (*untyped allowed_ips, ?on_denied: (^() -> void)?, ?only: Array[Symbol]?, ?except: Array[Symbol]?) -> void
 
     private
 
-    # @rbs action: Symbol
+    # @rbs allowed_ips: Array[String | ^() -> Array[String]]
+    # @rbs on_denied: (^() -> void)?
     # @rbs return: void
-    def check_ip_restriction: (Symbol action) -> void
-
-    # @rbs return: void
-    def check_ip_restriction_for_all: () -> void
-
-    # @rbs restriction: restriction_options?
-    # @rbs return: void
-    def verify_ip_access: (restriction_options? restriction) -> void
-
-    # @rbs allowed_ips: Array[String] | ^() -> Array[String]
-    # @rbs return: Array[String]
-    def resolve_allowed_ips: (Array[String] | ^() -> Array[String] allowed_ips) -> Array[String]
+    def verify_ip_access: (allowed_ips: Array[String | ^() -> Array[String]], on_denied: (^() -> void)?) -> void
 
     # @rbs client_ip: String?
     # @rbs return: void
