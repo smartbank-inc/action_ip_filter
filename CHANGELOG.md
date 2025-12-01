@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [0.4.1] - 2025-12-01
+
+### Bug Fix
+
+- Fix to allow an `Array[String]` to be used as the list of allowed IP addresses [#7](https://github.com/smartbank-inc/action_ip_filter/pull/7)
+
 ## [0.4.0] - 2025-12-01
 
 ### Breaking Changes
