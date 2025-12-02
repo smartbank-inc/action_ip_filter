@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [0.5.0] - 2025-12-02
+
+### New Features
+
+- Make `log_denial_message` configurable [#9](https://github.com/smartbank-inc/action_ip_filter/pull/9)
+
 ## [0.4.1] - 2025-12-01
 
 ### Bug Fix
