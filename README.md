@@ -6,12 +6,12 @@ A lightweight gem that provides IP address restrictions for Rails controllers at
 
 Unlike Rack middleware solutions (e.g., `rack-attack`), action_ip_filter operates at the controller level:
 
-| Feature | rack-attack | action_ip_filter |
-|---------|-------------|----------------|
-| Layer | Rack middleware (all requests) | Controller before_action |
-| Granularity | Path/IP based | Controller/Action based |
-| Overhead | Every request evaluated | Only specified actions |
-| Use case | DDoS protection, rate limiting | Admin panels, webhooks |
+| Feature     | rack-attack                    | action_ip_filter         |
+|-------------|--------------------------------|--------------------------|
+| Layer       | Rack middleware (all requests) | Controller before_action |
+| Granularity | Path/IP based                  | Controller/Action based  |
+| Overhead    | Every request evaluated        | Only specified actions   |
+| Use case    | DDoS protection, rate limiting | Admin panels, webhooks   |
 
 **Use this gem when you need:**
 - IP restrictions on specific controller actions only
@@ -177,17 +177,36 @@ ActionIpFilter.configure do |config|
 
   # Enable/disable denial logging (default: true)
   config.log_denials = true
+
+  # Logging on denied
+  # It passes `config.logger` as the first argument (logger) and the actual client IP address as the second argument (client_ip).
+  config.log_denial_message = ->(logger, client_ip) {
+    logger.error("Blocked IP: #{client_ip}")
+  }
 end
 ```
 
 ### Default Values
 
-| Option | Default                             | Description                                        |
-|--------|-------------------------------------|----------------------------------------------------|
-| `ip_resolver` | `-> { request.remote_ip }` | Proc that extracts client IP from request |
-| `on_denied` | `-> { head :forbidden }`            | Handler called when access is denied (returns 403) |
-| `logger` | `Rails.logger`                      | Logger instance for denied request logging |
-| `log_denials` | `true`                              | Whether to log denied requests as warn level |
+| Option               | Default                    | Description                                        |
+|----------------------|----------------------------|----------------------------------------------------|
+| `ip_resolver`        | `-> { request.remote_ip }` | Proc that extracts client IP from request          |
+| `on_denied`          | `-> { head :forbidden }`   | Handler called when access is denied (returns 403) |
+| `logger`             | `Rails.logger`             | Logger instance for denied request logging         |
+| `log_denials`        | `true`                     | Whether to log denied requests as warn level       |
+| `log_denial_message` | See below                  | Proc that formats the denial log message           |
+
+The default `log_denial_message` is:
+
+```ruby
+->(logger, client_ip) {
+  logger.warn("[ActionIpFilter] Access denied for IP: #{client_ip} on #{self.class.name}##{action_name}")
+}
+```
+
+### Note on the configurable Proc block
+
+The block is executed via `instance_exec` in the controller context, so you may call controller methods such as `request`, `head`, `render`, and others.
 
 ## Testing
 

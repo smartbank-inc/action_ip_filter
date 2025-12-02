@@ -4,9 +4,8 @@ module ActionIpFilter
   module IpFilterable
     extend ActiveSupport::Concern
 
-    def action_name: () -> String
-
-    def instance_exec: [T] (*untyped) { () -> T } -> T
+    def instance_exec: [T] () { () -> T } -> T
+                     | (Logger, String?) { (Logger, String?) -> void } -> void
 
     def before_action: (*untyped, **untyped) -> void
 

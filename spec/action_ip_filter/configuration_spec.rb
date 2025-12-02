@@ -19,6 +19,10 @@ RSpec.describe ActionIpFilter::Configuration do
     it "enables log_denials by default" do
       expect(config.log_denials).to be true
     end
+
+    it "sets default log_denial_message" do
+      expect(config.log_denial_message).to be_a(Proc)
+    end
   end
 
   describe "default ip_resolver" do
@@ -57,6 +61,18 @@ RSpec.describe ActionIpFilter do
       end
 
       expect(described_class.configuration.on_denied).to eq(custom_handler)
+    end
+
+    it "allows setting custom log_denial_message" do
+      custom_message = ->(logger, client_ip) {
+        logger.warn("Blocked #{client_ip} at #{controller_name}##{action_name}")
+      }
+
+      described_class.configure do |config|
+        config.log_denial_message = custom_message
+      end
+
+      expect(described_class.configuration.log_denial_message).to eq(custom_message)
     end
   end
 

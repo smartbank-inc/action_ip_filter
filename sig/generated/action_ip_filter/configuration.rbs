@@ -10,6 +10,20 @@ module ActionIpFilter
 
     @log_denials: bool
 
+    @log_denial_message: ^(Logger, String?) -> void
+
+    interface _Request
+      def remote_ip: () -> String
+    end
+
+    def action_name: () -> String
+
+    def controller_name: () -> String
+
+    def head: (Symbol) -> void
+
+    def request: () -> _Request
+
     attr_accessor ip_resolver: ^() -> String?
 
     attr_accessor on_denied: ^() -> void
@@ -17,6 +31,8 @@ module ActionIpFilter
     attr_accessor logger: Logger?
 
     attr_accessor log_denials: bool
+
+    attr_accessor log_denial_message: ^(Logger, String?) -> void
 
     # @rbs return: void
     def initialize: () -> void
