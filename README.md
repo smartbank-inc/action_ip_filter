@@ -259,11 +259,13 @@ end
 
 ## Logging
 
-When `log_denials` is enabled (default), denied requests are logged:
+When `log_denials` is enabled, denied requests are logged as default:
 
 ```
 [ActionIpFilter] Access denied for IP: 192.0.2.1 on MyController#index
 ```
+
+See also: the `log_denial_message` configuration, which allows you to adjust both the log level and the message.
 
 ## Development
 
