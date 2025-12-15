@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.5.1] - 2025-12-15
+
+There are no changes in core logic. Only the release toolchain has been changed.
+
 ## [0.5.0] - 2025-12-02
 
 ### New Features
