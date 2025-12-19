@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.5.2] - 2025-12-15
+
+- Bundle the rbs files
+
 ## [0.5.1] - 2025-12-15
 
 There are no changes in core logic. Only the release toolchain has been changed.
