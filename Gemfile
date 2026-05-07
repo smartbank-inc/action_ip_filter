@@ -10,4 +10,4 @@ gem "rspec-rails", "~> 8.0"
 gem "standard", "~> 1.52"
 gem "rails", "~> 8.0"
 gem "rbs-inline", "~> 0.12", require: false
-gem "steep", "~> 1.10", require: false
+gem "steep", "~> 2.0", require: false
